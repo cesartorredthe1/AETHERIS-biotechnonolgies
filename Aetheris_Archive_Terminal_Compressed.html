@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AETHERIS BIOTECHNOLOGIES // OFFICE OF RECORDS</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap');
+
+  :root {
+    --bg: #030503;
+    --phosphor: #c7d6c1;
+    --phosphor-dim: #5c6b58;
+    --amber: #d4a64a;
+    --red: #d93829;
+    --border: #2c382a;
+    --panel: rgba(8, 13, 8, 0.92);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background-color: var(--bg);
+    color: var(--phosphor);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+    letter-spacing: 0.08em;
+  }
+
+  /* CRT Scanlines & Vignette */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(
+      rgba(18, 16, 16, 0) 50%, 
+      rgba(0, 0, 0, 0.42) 50%
+    );
+    background-size: 100% 4px;
+    z-index: 9998;
+    pointer-events: none;
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at center, transparent 58%, rgba(0, 0, 0, 0.85) 100%);
+    z-index: 9999;
+    pointer-events: none;
+  }
+
+  @keyframes flicker {
+    0%, 100% { opacity: 0.99; }
+    50% { opacity: 0.965; }
+    72% { opacity: 0.985; }
+  }
+
+  /* Title Screen Gateway */
+  #titleGateway {
+    position: fixed;
+    inset: 0;
+    background: #020402;
+    z-index: 9500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: flicker 6s infinite;
+  }
+
+  #titleGateway.hidden {
+    display: none;
+  }
+
+  .gateway-box {
+    border: 1px solid var(--border);
+    background: rgba(6, 11, 6, 0.96);
+    max-width: 640px;
+    width: 100%;
+    padding: 36px 32px;
+    box-shadow: 0 0 35px rgba(0, 0, 0, 0.95);
+    text-align: center;
+  }
+
+  .gateway-sub {
+    color: var(--amber);
+    font-size: 0.85rem;
+    letter-spacing: 0.18em;
+    margin-bottom: 10px;
+  }
+
+  .gateway-title {
+    font-family: 'VT323', monospace;
+    font-size: 2.7rem;
+    color: var(--phosphor);
+    letter-spacing: 0.14em;
+    line-height: 1.1;
+    margin-bottom: 18px;
+  }
+
+  .gateway-boot {
+    text-align: left;
+    border: 1px solid var(--border);
+    background: #030603;
+    padding: 14px 16px;
+    font-size: 0.82rem;
+    color: var(--phosphor-dim);
+    line-height: 1.65;
+    margin-bottom: 24px;
+  }
+
+  .gateway-boot span.ok { color: var(--phosphor); }
+  .gateway-boot span.warn { color: var(--amber); }
+
+  .gateway-prompt {
+    color: var(--phosphor);
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+    letter-spacing: 0.14em;
+  }
+
+  .gateway-form {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .gateway-error {
+    color: var(--red);
+    font-size: 0.85rem;
+    min-height: 22px;
+    margin-top: 10px;
+  }
+
+  .crt-frame {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 20px 28px;
+    animation: flicker 6s infinite;
+  }
+
+  /* Top NASA / Aetheris Header Bar */
+  .top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+    margin-bottom: 18px;
+    font-size: 0.92rem;
+    color: var(--phosphor-dim);
+  }
+
+  .top-header .left-meta span {
+    color: var(--phosphor);
+  }
+
+  .rec-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--phosphor);
+  }
+
+  .rec-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 8px var(--red);
+    animation: pulse 1.4s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+  }
+
+  /* Control Toolbar */
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 22px;
+    padding-bottom: 14px;
+    border-bottom: 1px dashed var(--border);
+    align-items: center;
+  }
+
+  button {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--phosphor);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    padding: 8px 14px;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    transition: all 0.15s ease;
+    text-transform: uppercase;
+  }
+
+  button:hover {
+    border-color: var(--amber);
+    color: var(--amber);
+    background: rgba(212, 166, 74, 0.06);
+  }
+
+  button.primary {
+    border-color: var(--amber);
+    color: var(--amber);
+  }
+
+  button.danger {
+    border-color: #5c221d;
+    color: var(--red);
+  }
+
+  button.danger:hover {
+    border-color: var(--red);
+    background: rgba(217, 56, 41, 0.1);
+  }
+
+  .size-readout {
+    margin-left: auto;
+    font-size: 0.8rem;
+    color: var(--phosphor-dim);
+  }
+
+  /* Layout Split: Directory Sidebar + Main Video-Style Viewer */
+  .workspace {
+    display: grid;
+    grid-template-columns: 310px 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+
+  @media (max-width: 900px) {
+    .workspace { grid-template-columns: 1fr; }
+  }
+
+  .sidebar {
+    border: 1px solid var(--border);
+    background: var(--panel);
+    padding: 16px;
+  }
+
+  .sidebar-title {
+    font-size: 0.85rem;
+    color: var(--amber);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 540px;
+    overflow-y: auto;
+  }
+
+  .file-item {
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .file-item:hover, .file-item.active {
+    border-color: var(--amber);
+    background: rgba(212, 166, 74, 0.05);
+  }
+
+  .file-item .code {
+    font-size: 0.78rem;
+    color: var(--amber);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .file-item .name {
+    font-size: 0.95rem;
+    margin-top: 4px;
+    color: var(--phosphor);
+  }
+
+  .empty-dir {
+    color: var(--phosphor-dim);
+    font-size: 0.85rem;
+    line-height: 1.6;
+    padding: 18px 8px;
+    text-align: center;
+    border: 1px dashed var(--border);
+  }
+
+  /* Main Personnel / File Viewer */
+  .viewer {
+    border: 1px solid var(--border);
+    background: var(--panel);
+    padding: 26px 30px;
+    min-height: 540px;
+    position: relative;
+  }
+
+  .viewer-subhead {
+    font-size: 0.85rem;
+    color: var(--phosphor-dim);
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .personnel-layout {
+    display: grid;
+    grid-template-columns: 270px 1fr;
+    gap: 36px;
+    align-items: start;
+  }
+
+  @media (max-width: 750px) {
+    .personnel-layout { grid-template-columns: 1fr; }
+  }
+
+  /* Left Side Photo Box + Stamp */
+  .photo-frame {
+    width: 270px;
+    height: 320px;
+    border: 1px solid var(--phosphor-dim);
+    background: #070a07;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .photo-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(100%) contrast(125%) brightness(0.92);
+  }
+
+  .photo-frame .no-photo {
+    color: var(--phosphor-dim);
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 16px;
+    letter-spacing: 0.14em;
+  }
+
+  .status-stamp {
+    position: absolute;
+    top: 42%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-14deg);
+    border: 3px solid var(--red);
+    color: var(--red);
+    font-family: 'VT323', monospace;
+    font-size: 2.3rem;
+    padding: 2px 16px;
+    letter-spacing: 0.15em;
+    background: rgba(0, 0, 0, 0.65);
+    text-transform: uppercase;
+    pointer-events: none;
+    white-space: nowrap;
+    box-shadow: 0 0 12px rgba(217, 56, 41, 0.35);
+  }
+
+  .status-stamp.amber {
+    border-color: var(--amber);
+    color: var(--amber);
+    box-shadow: 0 0 12px rgba(212, 166, 74, 0.35);
+  }
+
+  /* Right Side Key-Value Data Rows */
+  .data-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 6px;
+  }
+
+  .data-row {
+    display: grid;
+    grid-template-columns: 175px 1fr;
+    gap: 16px;
+    align-items: baseline;
+    font-size: 1.05rem;
+    line-height: 1.45;
+  }
+
+  .data-label {
+    color: var(--phosphor-dim);
+    text-transform: uppercase;
+  }
+
+  .data-value {
+    color: var(--phosphor);
+    text-transform: uppercase;
+    word-break: break-word;
+  }
+
+  .data-value.alert {
+    color: var(--red);
+  }
+
+  .data-value.warn {
+    color: var(--amber);
+  }
+
+  /* Attached Audio / Video Media Box Below */
+  .media-section {
+    margin-top: 32px;
+    padding-top: 22px;
+    border-top: 1px solid var(--border);
+  }
+
+  .media-header {
+    font-size: 0.85rem;
+    color: var(--amber);
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .waveform-box {
+    border: 1px solid var(--border);
+    background: #040704;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+
+  canvas#waveform {
+    width: 100%;
+    height: 68px;
+    display: block;
+  }
+
+  .caption-display {
+    margin-top: 12px;
+    font-size: 1rem;
+    color: var(--phosphor);
+    min-height: 48px;
+    line-height: 1.5;
+    padding: 10px 12px;
+    border-left: 2px solid var(--amber);
+    background: rgba(212, 166, 74, 0.04);
+  }
+
+  video.terminal-video {
+    width: 100%;
+    max-height: 360px;
+    border: 1px solid var(--border);
+    background: #000;
+    filter: contrast(115%) saturate(75%);
+  }
+
+  /* Passcode Lock Screen */
+  .lock-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 420px;
+    text-align: center;
+    gap: 16px;
+  }
+
+  .lock-screen h2 {
+    color: var(--red);
+    font-size: 1.35rem;
+    letter-spacing: 0.16em;
+  }
+
+  .lock-input-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+  }
+
+  input, textarea, select {
+    background: #050805;
+    border: 1px solid var(--border);
+    color: var(--phosphor);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.92rem;
+    padding: 9px 12px;
+    outline: none;
+    letter-spacing: 0.06em;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--amber);
+  }
+
+  /* Modal Overlay for Creating / Editing Custom Files */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.86);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9000;
+    padding: 20px;
+  }
+
+  .modal-backdrop.open {
+    display: flex;
+  }
+
+  .modal {
+    background: #060a06;
+    border: 1px solid var(--amber);
+    width: 100%;
+    max-width: 720px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px 28px;
+  }
+
+  .modal h3 {
+    color: var(--amber);
+    margin-bottom: 18px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    font-size: 1.05rem;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group.full {
+    grid-column: 1 / -1;
+  }
+
+  .form-group label {
+    font-size: 0.8rem;
+    color: var(--phosphor-dim);
+  }
+
+  .custom-field-row {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr auto;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+
+  .helper-note {
+    font-size: 0.78rem;
+    color: var(--phosphor-dim);
+    margin-top: 2px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Title Screen Gateway -->
+<div id="titleGateway">
+  <div class="gateway-box">
+    <div class="gateway-sub">RESTRICTED FACILITY NETWORK // NODE 04</div>
+    <div class="gateway-title">AETHERIS BIOTECHNOLOGIES<br>OFFICE OF RECORDS</div>
+    <div class="gateway-boot">
+      &gt; INITIALIZING CRT TERMINAL INTERFACE... <span class="ok">[OK]</span><br>
+      &gt; VERIFYING FLIGHT RECORDER INTEGRITY... <span class="ok">[OK]</span><br>
+      &gt; PROJECT ETERNAL PLAY ARCHIVE DETECTED... <span class="warn">[LOCKED]</span><br>
+      &gt; UNAUTHORIZED ACCESS IS STRICTLY PROHIBITED.
+    </div>
+    <div class="gateway-prompt">[ ACCESS CODE ]</div>
+    <div class="gateway-form">
+      <input type="password" id="gatewayCodeInput" placeholder="ENTER ACCESS CODE..." onkeydown="if(event.key==='Enter') unlockGateway()">
+      <button class="primary" onclick="unlockGateway()">AUTHENTICATE</button>
+    </div>
+    <div class="gateway-error" id="gatewayError"></div>
+  </div>
+</div>
+
+<div class="crt-frame">
+  <!-- Top Header -->
+  <div class="top-header">
+    <div class="left-meta">
+      AETHERIS BIOTECHNOLOGIES // <span>OFFICE OF RECORDS</span> // <span id="headerFileCode">NO FILE LOADED</span>
+    </div>
+    <div class="rec-badge">
+      <span id="liveClock">00:00:00 UTC</span>
+      <div class="rec-dot"></div>
+      <span>REC</span>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="primary" onclick="openEditor()">+ CREATE / IMPORT FILE</button>
+    <button onclick="exportArchive()" id="exportBtn">EXPORT ARCHIVE (.JSON)</button>
+    <button onclick="document.getElementById('importJsonInput').click()">LOAD ARCHIVE (.JSON)</button>
+    <input type="file" id="importJsonInput" accept=".json" style="display:none" onchange="importArchive(event)">
+    <button onclick="showGateway()">TITLE SCREEN</button>
+    <button class="danger" onclick="clearAllFiles()">WIPE LOCAL STORAGE</button>
+    <span class="size-readout" id="archiveSizeReadout">ARCHIVE SIZE: 0.00 MB</span>
+  </div>
+
+  <!-- Main Workspace -->
+  <div class="workspace">
+    <!-- Left Directory -->
+    <div class="sidebar">
+      <div class="sidebar-title">
+        <span>02 // ARCHIVE DIRECTORY</span>
+        <span id="fileCount">0 FILES</span>
+      </div>
+      <div id="fileList" class="file-list">
+        <div class="empty-dir">
+          ARCHIVE IS CURRENTLY EMPTY.<br><br>
+          CLICK <strong>[+ CREATE / IMPORT FILE]</strong> ABOVE TO ADD YOUR OWN SUBJECTS, FILE CODES, PASSCODES, IMAGES, VIDEOS, AND AUDIO LOGS.
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Main Screen -->
+    <div class="viewer" id="mainViewer">
+      <div class="empty-dir" style="margin-top: 140px; border: none;">
+        AWAITING FILE SELECTION...<br>
+        NO PRE-LOADED CHARACTER LOGS PRESENT. CREATE A NEW RECORD TO BEGIN.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create / Edit File Modal -->
+<div class="modal-backdrop" id="editorModal">
+  <div class="modal">
+    <h3 id="modalTitle">// CREATE NEW ARCHIVE RECORD</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>FILE CODE / ID (E.G. FILE 11-0084-AE)</label>
+        <input type="text" id="fCode" placeholder="FILE 01-0001-AE">
+      </div>
+      <div class="form-group">
+        <label>ACCESS PASSCODE (OPTIONAL — LEAVE BLANK FOR OPEN)</label>
+        <input type="text" id="fPasscode" placeholder="E.G. CHARLIE">
+      </div>
+      <div class="form-group">
+        <label>SUBJECT / RECORD NAME</label>
+        <input type="text" id="fName" placeholder="SUBJECT NAME">
+      </div>
+      <div class="form-group">
+        <label>ROLE / DESIGNATION</label>
+        <input type="text" id="fRole" placeholder="E.G. VESSEL / RESEARCHER / SHELL">
+      </div>
+      <div class="form-group">
+        <label>STATUS STAMP OVER PHOTO</label>
+        <select id="fStamp">
+          <option value="">NONE</option>
+          <option value="DECEASED">DECEASED (RED)</option>
+          <option value="TERMINATED">TERMINATED (RED)</option>
+          <option value="SIGNAL CUT">SIGNAL CUT (AMBER)</option>
+          <option value="REDACTED">REDACTED (AMBER)</option>
+          <option value="ESCAPED">ESCAPED (AMBER)</option>
+          <option value="ACTIVE">ACTIVE (AMBER)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>DEMEANOR / STATUS TEXT</label>
+        <input type="text" id="fStatus" placeholder="E.G. UNVERIFIED / CONTAINED">
+      </div>
+
+      <!-- Custom Key-Value Rows -->
+      <div class="form-group full">
+        <label>ADDITIONAL RIGHT-SIDE DATA ROWS (LIKE NOTE, HISTORY, ALIAS, ETC.)</label>
+        <div id="customFieldsContainer"></div>
+        <button type="button" onclick="addCustomFieldRow()" style="width: fit-content; margin-top: 4px;">+ ADD DATA ROW</button>
+      </div>
+
+      <!-- Image Upload -->
+      <div class="form-group full">
+        <label>SUBJECT PHOTOGRAPH (AUTO-COMPRESSED FOR GITHUB)</label>
+        <input type="file" id="fImageInput" accept="image/*" onchange="handleFileUpload(event, 'image')">
+        <div class="helper-note" id="imageStatus">No image selected (will show [REDACTED] box).</div>
+      </div>
+
+      <!-- Video Upload -->
+      <div class="form-group full">
+        <label>ATTACHED VIDEO FOOTAGE (OPTIONAL — .MP4 / .WEBM)</label>
+        <input type="file" id="fVideoInput" accept="video/*" onchange="handleFileUpload(event, 'video')">
+        <div class="helper-note" id="videoStatus">No video attached.</div>
+      </div>
+
+      <!-- Audio Upload -->
+      <div class="form-group full">
+        <label>ATTACHED AUDIO LOG (AUTO-COMPRESSED TO LO-FI MONO FOR GITHUB)</label>
+        <input type="file" id="fAudioInput" accept="audio/*" onchange="handleFileUpload(event, 'audio')">
+        <div class="helper-note" id="audioStatus">No audio attached.</div>
+        <div style="display:flex; gap:8px; margin-top:6px; flex-wrap:wrap;">
+          <button type="button" onclick="autoTranscribeAudio()">AUTO-CAPTION / UNDERSTAND AUDIO</button>
+        </div>
+      </div>
+
+      <div class="form-group full">
+        <label>AUDIO TRANSCRIPT / CAPTION LINES (ONE LINE PER CAPTION BEAT)</label>
+        <textarea id="fTranscript" rows="4" placeholder="SPEAKER: Type or auto-generate captions for the audio waveform here..."></textarea>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" onclick="closeEditor()">CANCEL</button>
+      <button type="button" class="primary" id="saveRecordBtn" onclick="saveRecord()">SAVE TO TERMINAL</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'aetheris_blank_archive_v1';
+  const DB_NAME = 'AetherisArchiveDB';
+  const STORE_NAME = 'recordsStore';
+
+  let records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  let activeId = records.length ? records[0].id : null;
+  let unlockedIds = new Set();
+  let editingId = null;
+
+  let tempMedia = { image: null, video: null, audio: null };
+  let animFrame = null;
+  let captionTimer = null;
+
+  const syncChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('aetheris_archive_sync') : null;
+
+  // Title Screen Gateway Logic (Access Code: C.O.S)
+  function unlockGateway() {
+    const input = document.getElementById('gatewayCodeInput');
+    const err = document.getElementById('gatewayError');
+    const val = input.value.trim().toUpperCase();
+    if (val === 'C.O.S') {
+      sessionStorage.setItem('aetheris_gateway_unlocked', 'true');
+      document.getElementById('titleGateway').classList.add('hidden');
+      err.textContent = '';
+    } else {
+      err.textContent = 'ACCESS DENIED // INVALID CLEARANCE CODE';
+      input.value = '';
+    }
+  }
+
+  function showGateway() {
+    sessionStorage.removeItem('aetheris_gateway_unlocked');
+    document.getElementById('gatewayCodeInput').value = '';
+    document.getElementById('gatewayError').textContent = '';
+    document.getElementById('titleGateway').classList.remove('hidden');
+  }
+
+  if (sessionStorage.getItem('aetheris_gateway_unlocked') === 'true') {
+    document.getElementById('titleGateway').classList.add('hidden');
+  }
+
+  // IndexedDB Storage
+  function openArchiveDB() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = () => {
+        if (!req.result.objectStoreNames.contains(STORE_NAME)) {
+          req.result.createObjectStore(STORE_NAME);
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async function saveToIndexedDB(data) {
+    try {
+      const db = await openArchiveDB();
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      tx.objectStore(STORE_NAME).put(data, 'all_records');
+      return new Promise((resolve) => {
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
+      });
+    } catch {
+      return false;
+    }
+  }
+
+  async function loadFromIndexedDB() {
+    try {
+      const db = await openArchiveDB();
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const req = tx.objectStore(STORE_NAME).get('all_records');
+      return new Promise((resolve) => {
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  // Live UTC Clock
+  setInterval(() => {
+    const now = new Date();
+    document.getElementById('liveClock').textContent = now.toISOString().substr(11, 8) + ' UTC';
+  }, 1000);
+
+  function updateArchiveSizeReadout() {
+    const el = document.getElementById('archiveSizeReadout');
+    if (!el) return;
+    const bytes = new Blob([JSON.stringify(records)]).size;
+    const mb = (bytes / (1024 * 1024)).toFixed(2);
+    el.textContent = `ARCHIVE SIZE: ${mb} MB / 25 MB GITHUB LIMIT`;
+    el.style.color = bytes > 24 * 1024 * 1024 ? 'var(--red)' : 'var(--phosphor-dim)';
+  }
+
+  async function persist() {
+    await saveToIndexedDB(records);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    } catch (e) {
+      try {
+        localStorage.setItem(STORAGE_KEY + '_ping', Date.now().toString());
+      } catch (_) {}
+    }
+    updateArchiveSizeReadout();
+    if (syncChannel) {
+      syncChannel.postMessage({ type: 'SYNC_RECORDS' });
+    }
+  }
+
+  async function reloadFromStorage(keepActive = true) {
+    const dbRecords = await loadFromIndexedDB();
+    if (Array.isArray(dbRecords)) {
+      records = dbRecords;
+    } else {
+      const ls = localStorage.getItem(STORAGE_KEY);
+      if (ls) {
+        try { records = JSON.parse(ls); } catch (_) {}
+      }
+    }
+
+    if (!keepActive || !records.some(r => r.id === activeId)) {
+      activeId = records.length ? records[0].id : null;
+    }
+    updateArchiveSizeReadout();
+    renderDirectory();
+    renderViewer();
+  }
+
+  if (syncChannel) {
+    syncChannel.onmessage = (event) => {
+      if (event.data && event.data.type === 'SYNC_RECORDS') {
+        reloadFromStorage(true);
+      }
+    };
+  }
+
+  window.addEventListener('storage', (e) => {
+    if (e.key === STORAGE_KEY || e.key === STORAGE_KEY + '_ping') {
+      reloadFromStorage(true);
+    }
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      reloadFromStorage(true);
+    }
+  });
+
+  // Automatic Image Compression (Resizes to max 720px and converts to 72% JPEG)
+  function compressImageDataURL(dataUrl, maxDim = 720, quality = 0.72) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width;
+        let h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    });
+  }
+
+  // Automatic Audio Compression (Downsamples to 16kHz Mono 16-bit WAV -> ~85% smaller)
+  function encodeMonoWav(samples, sampleRate) {
+    const buffer = new ArrayBuffer(44 + samples.length * 2);
+    const view = new DataView(buffer);
+    function writeStr(offset, str) {
+      for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+    }
+    writeStr(0, 'RIFF');
+    view.setUint32(4, 36 + samples.length * 2, true);
+    writeStr(8, 'WAVE');
+    writeStr(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    writeStr(36, 'data');
+    view.setUint32(40, samples.length * 2, true);
+    let offset = 44;
+    for (let i = 0; i < samples.length; i++, offset += 2) {
+      const s = Math.max(-1, Math.min(1, samples[i]));
+      view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    }
+    return new Blob([buffer], { type: 'audio/wav' });
+  }
+
+  async function compressAudioArrayBuffer(arrayBuffer, targetRate = 16000) {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioCtx();
+      const decoded = await ctx.decodeAudioData(arrayBuffer.slice(0));
+      const length = Math.ceil(decoded.duration * targetRate);
+      const offline = new OfflineAudioContext(1, length, targetRate);
+      const src = offline.createBufferSource();
+      src.buffer = decoded;
+      src.connect(offline.destination);
+      src.start(0);
+      const rendered = await offline.startRendering();
+      const wavBlob = encodeMonoWav(rendered.getChannelData(0), targetRate);
+      await ctx.close();
+      return new Promise((resolve) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result);
+        r.readAsDataURL(wavBlob);
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  async function compressAllExistingRecords() {
+    let changed = false;
+    for (const rec of records) {
+      if (rec.image && rec.image.startsWith('data:image/') && rec.image.length > 180000) {
+        const smaller = await compressImageDataURL(rec.image, 720, 0.72);
+        if (smaller && smaller.length < rec.image.length) {
+          rec.image = smaller;
+          changed = true;
+        }
+      }
+      if (rec.audio && rec.audio.startsWith('data:audio/') && rec.audio.length > 2500000) {
+        try {
+          const resp = await fetch(rec.audio);
+          const buf = await resp.arrayBuffer();
+          const smallerAudio = await compressAudioArrayBuffer(buf, 16000);
+          if (smallerAudio && smallerAudio.length < rec.audio.length) {
+            rec.audio = smallerAudio;
+            changed = true;
+          }
+        } catch (_) {}
+      }
+    }
+    if (changed) {
+      await persist();
+      renderViewer();
+    }
+  }
+
+  function renderDirectory() {
+    const list = document.getElementById('fileList');
+    document.getElementById('fileCount').textContent = `${records.length} FILE${records.length === 1 ? '' : 'S'}`;
+
+    if (records.length === 0) {
+      list.innerHTML = `
+        <div class="empty-dir">
+          ARCHIVE IS CURRENTLY EMPTY.<br><br>
+          CLICK <strong>[+ CREATE / IMPORT FILE]</strong> ABOVE TO ADD YOUR OWN SUBJECTS, FILE CODES, PASSCODES, IMAGES, VIDEOS, AND AUDIO LOGS.
+        </div>`;
+      return;
+    }
+
+    list.innerHTML = records.map(rec => {
+      const locked = rec.passcode && !unlockedIds.has(rec.id);
+      return `
+        <div class="file-item ${rec.id === activeId ? 'active' : ''}" onclick="selectRecord('${rec.id}')">
+          <div class="code">
+            <span>${escapeHtml(rec.code)}</span>
+            <span>${locked ? '[LOCKED]' : '[OPEN]'}</span>
+          </div>
+          <div class="name">${locked ? '[ENCRYPTED RECORD]' : escapeHtml(rec.name)}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function selectRecord(id) {
+    activeId = id;
+    stopMediaPlayback();
+    renderDirectory();
+    renderViewer();
+  }
+
+  function renderViewer() {
+    const viewer = document.getElementById('mainViewer');
+    const rec = records.find(r => r.id === activeId);
+
+    if (!rec) {
+      document.getElementById('headerFileCode').textContent = 'NO FILE LOADED';
+      viewer.innerHTML = `
+        <div class="empty-dir" style="margin-top: 140px; border: none;">
+          AWAITING FILE SELECTION...<br>
+          NO PRE-LOADED CHARACTER LOGS PRESENT. CREATE A NEW RECORD TO BEGIN.
+        </div>`;
+      return;
+    }
+
+    document.getElementById('headerFileCode').textContent = rec.code.toUpperCase();
+
+    if (rec.passcode && !unlockedIds.has(rec.id)) {
+      viewer.innerHTML = `
+        <div class="viewer-subhead">
+          <span>${escapeHtml(rec.code)} // RESTRICTED ACCESS</span>
+          <button class="danger" onclick="deleteRecord('${rec.id}')">DELETE</button>
+        </div>
+        <div class="lock-screen">
+          <h2>[ ACCESS RESTRICTED — PASSCODE REQUIRED ]</h2>
+          <p style="color: var(--phosphor-dim); font-size: 0.9rem;">ENTER SECURITY CLEARANCE CODE FOR ${escapeHtml(rec.code)}</p>
+          <div class="lock-input-group">
+            <input type="password" id="unlockInput" placeholder="ENTER CODE..." onkeydown="if(event.key==='Enter') tryUnlock('${rec.id}')">
+            <button class="primary" onclick="tryUnlock('${rec.id}')">DECRYPT</button>
+          </div>
+          <div id="unlockMsg" style="color: var(--red); font-size: 0.85rem; min-height: 20px;"></div>
+        </div>
+      `;
+      return;
+    }
+
+    const stampClass = (rec.stamp === 'SIGNAL CUT' || rec.stamp === 'REDACTED' || rec.stamp === 'ESCAPED' || rec.stamp === 'ACTIVE') ? 'amber' : '';
+    const stampHtml = rec.stamp ? `<div class="status-stamp ${stampClass}">${escapeHtml(rec.stamp)}</div>` : '';
+
+    const photoHtml = rec.image
+      ? `<img src="${rec.image}" alt="Subject Photo">${stampHtml}`
+      : `<div class="no-photo">[REDACTED]<br><span style="font-size:0.75rem;">NO PHOTO ON FILE</span></div>${stampHtml}`;
+
+    let rowsHtml = `
+      <div class="data-row">
+        <div class="data-label">NAME</div>
+        <div class="data-value">${escapeHtml(rec.name || 'UNKNOWN')}</div>
+      </div>
+      <div class="data-row">
+        <div class="data-label">ROLE</div>
+        <div class="data-value">${escapeHtml(rec.role || 'UNASSIGNED')}</div>
+      </div>
+    `;
+
+    if (rec.status) {
+      const isAlert = ['DECEASED', 'TERMINATED', 'COMPROMISED', 'HOSTILE'].includes(rec.status.toUpperCase());
+      rowsHtml += `
+        <div class="data-row">
+          <div class="data-label">STATUS</div>
+          <div class="data-value ${isAlert ? 'alert' : 'warn'}">${escapeHtml(rec.status)}</div>
+        </div>
+      `;
+    }
+
+    (rec.extraFields || []).forEach(field => {
+      if (field.label || field.value) {
+        rowsHtml += `
+          <div class="data-row">
+            <div class="data-label">${escapeHtml(field.label)}</div>
+            <div class="data-value">${escapeHtml(field.value)}</div>
+          </div>
+        `;
+      }
+    });
+
+    let audioHtml = '';
+    if (rec.audio || (rec.transcript && rec.transcript.trim())) {
+      audioHtml = `
+        <div class="media-section">
+          <div class="media-header">
+            <span>// RECOVERED AUDIO LOG & TRANSCRIPT</span>
+            <div>
+              ${rec.audio ? `<button class="primary" onclick="toggleAudioPlay()">PLAY / STOP AUDIO</button>` : ''}
+            </div>
+          </div>
+          <div class="waveform-box">
+            <canvas id="waveform" width="800" height="68"></canvas>
+            ${rec.audio ? `<audio id="terminalAudio" src="${rec.audio}" onended="stopMediaPlayback()"></audio>` : ''}
+          </div>
+          <div class="caption-display" id="captionBox">
+            ${rec.transcript ? escapeHtml(rec.transcript.split('\n')[0]) : '[NO TRANSCRIPT PROVIDED]'}
+          </div>
+        </div>
+      `;
+    }
+
+    let videoHtml = '';
+    if (rec.video) {
+      videoHtml = `
+        <div class="media-section">
+          <div class="media-header">
+            <span>// RECOVERED VISUAL FLIGHT RECORDER</span>
+          </div>
+          <video class="terminal-video" controls src="${rec.video}"></video>
+        </div>
+      `;
+    }
+
+    viewer.innerHTML = `
+      <div class="viewer-subhead">
+        <span>${escapeHtml(rec.code)} // 02 / PERSONNEL & RECORD DATA</span>
+        <div style="display:flex; gap:8px;">
+          <button onclick="openEditor('${rec.id}')">EDIT RECORD</button>
+          <button class="danger" onclick="deleteRecord('${rec.id}')">DELETE</button>
+        </div>
+      </div>
+
+      <div class="personnel-layout">
+        <div class="photo-frame">
+          ${photoHtml}
+        </div>
+        <div class="data-fields">
+          ${rowsHtml}
+        </div>
+      </div>
+
+      ${audioHtml}
+      ${videoHtml}
+    `;
+
+    drawStaticWaveform();
+  }
+
+  function tryUnlock(id) {
+    const rec = records.find(r => r.id === id);
+    const val = document.getElementById('unlockInput').value.trim();
+    if (rec && val.toLowerCase() === rec.passcode.toLowerCase()) {
+      unlockedIds.add(id);
+      renderDirectory();
+      renderViewer();
+    } else {
+      document.getElementById('unlockMsg').textContent = 'ACCESS DENIED // INVALID SECURITY CODE';
+    }
+  }
+
+  function openEditor(id = null) {
+    editingId = id;
+    tempMedia = { image: null, video: null, audio: null };
+    const container = document.getElementById('customFieldsContainer');
+    container.innerHTML = '';
+
+    if (id) {
+      const rec = records.find(r => r.id === id);
+      document.getElementById('modalTitle').textContent = `// EDIT RECORD: ${rec.code}`;
+      document.getElementById('fCode').value = rec.code;
+      document.getElementById('fPasscode').value = rec.passcode || '';
+      document.getElementById('fName').value = rec.name;
+      document.getElementById('fRole').value = rec.role;
+      document.getElementById('fStamp').value = rec.stamp || '';
+      document.getElementById('fStatus').value = rec.status || '';
+      document.getElementById('fTranscript').value = rec.transcript || '';
+      tempMedia.image = rec.image || null;
+      tempMedia.video = rec.video || null;
+      tempMedia.audio = rec.audio || null;
+
+      document.getElementById('imageStatus').textContent = rec.image ? 'Existing photo loaded.' : 'No image selected.';
+      document.getElementById('videoStatus').textContent = rec.video ? 'Existing video loaded.' : 'No video attached.';
+      document.getElementById('audioStatus').textContent = rec.audio ? 'Existing audio loaded.' : 'No audio attached.';
+
+      (rec.extraFields || []).forEach(f => addCustomFieldRow(f.label, f.value));
+    } else {
+      document.getElementById('modalTitle').textContent = '// CREATE NEW ARCHIVE RECORD';
+      document.getElementById('fCode').value = `FILE 11-00${records.length + 1}-AE`;
+      document.getElementById('fPasscode').value = '';
+      document.getElementById('fName').value = '';
+      document.getElementById('fRole').value = '';
+      document.getElementById('fStamp').value = '';
+      document.getElementById('fStatus').value = '';
+      document.getElementById('fTranscript').value = '';
+      document.getElementById('imageStatus').textContent = 'No image selected (will show [REDACTED] box).';
+      document.getElementById('videoStatus').textContent = 'No video attached.';
+      document.getElementById('audioStatus').textContent = 'No audio attached.';
+      addCustomFieldRow('NOTE', '');
+      addCustomFieldRow('HISTORY', '');
+    }
+
+    document.getElementById('editorModal').classList.add('open');
+  }
+
+  function closeEditor() {
+    document.getElementById('editorModal').classList.remove('open');
+  }
+
+  function addCustomFieldRow(label = '', value = '') {
+    const container = document.getElementById('customFieldsContainer');
+    const row = document.createElement('div');
+    row.className = 'custom-field-row';
+    row.innerHTML = `
+      <input type="text" class="cf-label" placeholder="LABEL (E.G. ALIAS)" value="${escapeHtml(label)}">
+      <input type="text" class="cf-value" placeholder="VALUE (E.G. UNVERIFIED)" value="${escapeHtml(value)}">
+      <button type="button" class="danger" onclick="this.parentElement.remove()">X</button>
+    `;
+    container.appendChild(row);
+  }
+
+  function handleFileUpload(event, type) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const statusEl = document.getElementById(`${type}Status`);
+    const origMB = (file.size / (1024 * 1024)).toFixed(2);
+    statusEl.textContent = `Compressing ${file.name} (${origMB} MB)...`;
+
+    if (type === 'image') {
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const compressed = await compressImageDataURL(e.target.result, 720, 0.72);
+        tempMedia.image = compressed;
+        const newKB = Math.round((compressed.length * 0.75) / 1024);
+        statusEl.textContent = `Loaded & compressed: ${file.name} (${origMB} MB -> ${newKB} KB)`;
+      };
+      reader.readAsDataURL(file);
+    } else if (type === 'audio') {
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const compressedAudio = await compressAudioArrayBuffer(e.target.result, 16000);
+        if (compressedAudio) {
+          tempMedia.audio = compressedAudio;
+          const newMB = ((compressedAudio.length * 0.75) / (1024 * 1024)).toFixed(2);
+          statusEl.textContent = `Loaded & compressed: ${file.name} (${origMB} MB -> ${newMB} MB)`;
+        } else {
+          const fallbackReader = new FileReader();
+          fallbackReader.onload = (ev) => {
+            tempMedia.audio = ev.target.result;
+            statusEl.textContent = `Loaded: ${file.name} (${origMB} MB)`;
+          };
+          fallbackReader.readAsDataURL(file);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        tempMedia[type] = e.target.result;
+        statusEl.textContent = `Loaded: ${file.name} (${origMB} MB)`;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  function autoTranscribeAudio() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Your browser does not support live SpeechRecognition transcription. You can type or paste your transcript lines directly into the box below!');
+      return;
+    }
+    if (!tempMedia.audio) {
+      alert('Upload an audio file first, then click AUTO-CAPTION while it plays to transcribe the speech!');
+      return;
+    }
+
+    const audio = new Audio(tempMedia.audio);
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+
+    const transcriptBox = document.getElementById('fTranscript');
+    document.getElementById('audioStatus').textContent = 'Listening & transcribing audio...';
+
+    recognition.onresult = (event) => {
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          const text = event.results[i][0].transcript.trim().toUpperCase();
+          transcriptBox.value += (transcriptBox.value ? '\n' : '') + `VOICE LOG: "${text}"`;
+        }
+      }
+    };
+
+    recognition.onerror = () => {
+      document.getElementById('audioStatus').textContent = 'Transcription finished or mic permission blocked.';
+    };
+
+    audio.onended = () => {
+      recognition.stop();
+      document.getElementById('audioStatus').textContent = 'Auto-captioning complete.';
+    };
+
+    recognition.start();
+    audio.play();
+  }
+
+  async function saveRecord() {
+    const code = document.getElementById('fCode').value.trim() || 'FILE 00-0000';
+    const passcode = document.getElementById('fPasscode').value.trim();
+    const name = document.getElementById('fName').value.trim() || '[REDACTED]';
+    const role = document.getElementById('fRole').value.trim() || 'UNASSIGNED';
+    const stamp = document.getElementById('fStamp').value;
+    const status = document.getElementById('fStatus').value.trim();
+    const transcript = document.getElementById('fTranscript').value;
+
+    const extraFields = [];
+    document.querySelectorAll('.custom-field-row').forEach(row => {
+      const l = row.querySelector('.cf-label').value.trim();
+      const v = row.querySelector('.cf-value').value.trim();
+      if (l || v) extraFields.push({ label: l, value: v });
+    });
+
+    const recordData = {
+      id: editingId || ('rec_' + Date.now()),
+      code,
+      passcode,
+      name,
+      role,
+      stamp,
+      status,
+      extraFields,
+      image: tempMedia.image,
+      video: tempMedia.video,
+      audio: tempMedia.audio,
+      transcript
+    };
+
+    if (editingId) {
+      const idx = records.findIndex(r => r.id === editingId);
+      if (idx !== -1) records[idx] = recordData;
+    } else {
+      records.push(recordData);
+    }
+
+    if (passcode) unlockedIds.add(recordData.id);
+    activeId = recordData.id;
+    await persist();
+    closeEditor();
+    renderDirectory();
+    renderViewer();
+  }
+
+  async function deleteRecord(id) {
+    if (!confirm('PERMANENTLY DELETE THIS RECORD FROM THE ARCHIVE?')) return;
+    records = records.filter(r => r.id !== id);
+    if (activeId === id) activeId = records.length ? records[0].id : null;
+    await persist();
+    renderDirectory();
+    renderViewer();
+  }
+
+  async function clearAllFiles() {
+    if (!confirm('WIPE ALL CUSTOM RECORDS FROM LOCAL STORAGE?')) return;
+    records = [];
+    activeId = null;
+    unlockedIds.clear();
+    await persist();
+    renderDirectory();
+    renderViewer();
+  }
+
+  function drawStaticWaveform() {
+    const canvas = document.getElementById('waveform');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const bars = 96;
+    const barW = canvas.width / bars;
+    ctx.fillStyle = '#5c6b58';
+    for (let i = 0; i < bars; i++) {
+      const h = 6 + Math.abs(Math.sin(i * 0.45)) * 14;
+      ctx.fillRect(i * barW + 2, (canvas.height - h) / 2, barW - 4, h);
+    }
+  }
+
+  function toggleAudioPlay() {
+    const audio = document.getElementById('terminalAudio');
+    if (!audio) return;
+    if (!audio.paused) {
+      stopMediaPlayback();
+      return;
+    }
+
+    audio.play();
+    const rec = records.find(r => r.id === activeId);
+    const lines = (rec && rec.transcript) ? rec.transcript.split('\n').filter(l => l.trim()) : [];
+    const captionBox = document.getElementById('captionBox');
+
+    if (lines.length > 0 && captionBox) {
+      let lineIdx = 0;
+      captionBox.textContent = lines[0];
+      const stepMs = Math.max(1800, ((audio.duration || 10) * 1000) / lines.length);
+      captionTimer = setInterval(() => {
+        lineIdx++;
+        if (lineIdx < lines.length) {
+          captionBox.textContent = lines[lineIdx];
+        }
+      }, stepMs);
+    }
+
+    const canvas = document.getElementById('waveform');
+    const ctx = canvas.getContext('2d');
+    function animate() {
+      if (audio.paused) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const bars = 96;
+      const barW = canvas.width / bars;
+      ctx.fillStyle = '#c7d6c1';
+      for (let i = 0; i < bars; i++) {
+        const h = 6 + Math.random() * 52;
+        ctx.fillRect(i * barW + 2, (canvas.height - h) / 2, barW - 4, h);
+      }
+      animFrame = requestAnimationFrame(animate);
+    }
+    animate();
+  }
+
+  function stopMediaPlayback() {
+    const audio = document.getElementById('terminalAudio');
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+    if (animFrame) cancelAnimationFrame(animFrame);
+    if (captionTimer) clearInterval(captionTimer);
+    drawStaticWaveform();
+  }
+
+  async function exportArchive() {
+    const btn = document.getElementById('exportBtn');
+    const origLabel = btn.textContent;
+    btn.textContent = 'COMPRESSING...';
+    btn.disabled = true;
+
+    await compressAllExistingRecords();
+
+    const jsonStr = JSON.stringify(records, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const sizeMB = (blob.size / (1024 * 1024)).toFixed(2);
+
+    if (blob.size > 24.5 * 1024 * 1024) {
+      alert(`Warning: Your backup is still ${sizeMB} MB (GitHub's web upload limit is 25 MB). Try removing any large video files before exporting for GitHub.`);
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Aetheris_Archive_Backup.json';
+    a.click();
+    URL.revokeObjectURL(url);
+
+    btn.textContent = origLabel;
+    btn.disabled = false;
+  }
+
+  function importArchive(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      try {
+        const imported = JSON.parse(e.target.result);
+        if (Array.isArray(imported)) {
+          records = imported;
+          activeId = records.length ? records[0].id : null;
+          await compressAllExistingRecords();
+          await persist();
+          renderDirectory();
+          renderViewer();
+        }
+      } catch (err) {
+        alert('Invalid archive JSON file.');
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  }
+
+  function escapeHtml(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  (async function initTerminal() {
+    const dbRecords = await loadFromIndexedDB();
+    if (Array.isArray(dbRecords) && dbRecords.length > 0) {
+      records = dbRecords;
+    } else if (records.length === 0) {
+      try {
+        const res = await fetch('Aetheris_Archive_Backup.json', { cache: 'no-store' });
+        if (res.ok) {
+          const hosted = await res.json();
+          if (Array.isArray(hosted) && hosted.length > 0) {
+            records = hosted;
+            await persist();
+          }
+        }
+      } catch (_) {}
+    }
+
+    if (records.length > 0 && !activeId) {
+      activeId = records[0].id;
+    }
+    updateArchiveSizeReadout();
+    renderDirectory();
+    renderViewer();
+  })();
+</script>
+</body>
+</html>
